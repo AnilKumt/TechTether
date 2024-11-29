@@ -1,0 +1,15 @@
+{
+  "name": "techtetherbe",
+  "version": "1.0.0",
+  "description": "To Connect all techies aroud the world!",
+  "main": "index.js",
+  "scripts": {
+    "start":"node src/app.js",
+    "dev":"nodemon src/app.js"
+  },
+  "author": "Anil Kumawat",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
