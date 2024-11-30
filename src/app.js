@@ -37,6 +37,47 @@ app.post("/signup",async (req,res)=>{
 
 });
 
+// feed API
+app.get("/users", async (req,res)=>{
+    try{
+        const users = await userModel.find({});
+        if(users.length==0){
+            res.status(404).send("No Recommendations are found");
+        }
+        else{
+            res.send(users);
+        }
+    } 
+    catch{
+        res.status(400).send("Something wenr wrong !");
+    }
+});
+
+// delete user API
+app.delete("/user", async (req,res)=>{
+    try{
+        const userId = req.body.userId;
+        const deletedUser = await userModel.findByIdAndDelete(userId);
+        res.send(deletedUser.firstName + " is deleted.");
+    } 
+    catch{
+        res.status(400).send("Something went wrong !");
+    }
+});
+
+// update user API
+app.patch("/user", async (req,res)=>{
+    try{
+        const userId = req.body.userId;
+        const data = req.body;
+        const updatedUser = await userModel.findByIdAndUpdate(userId,data);
+        res.send(updatedUser.firstName + " is updated.");
+    } 
+    catch{
+        res.status(400).send("Something went wrong !");
+    }
+});
+
 app.use("/admin",adminAuth,(req,res)=>{
     res.send("Admin is Verified");
 });
