@@ -31,8 +31,8 @@ app.post("/signup",async (req,res)=>{
         await newUser.save();
         res.send("Congratulations!.You have signed Up !");
     }
-    catch{
-        res.send(400).send("Sorry. Unable to signUp Now. Try after some time");
+    catch(err){
+        res.status(400).send("Sorry. Unable to signUp Now. Try after some time"+err);
     }
 
 });
@@ -48,8 +48,8 @@ app.get("/users", async (req,res)=>{
             res.send(users);
         }
     } 
-    catch{
-        res.status(400).send("Something wenr wrong !");
+    catch(err){
+        res.status(400).send("Something wenr wrong !"+err);
     }
 });
 
@@ -60,21 +60,37 @@ app.delete("/user", async (req,res)=>{
         const deletedUser = await userModel.findByIdAndDelete(userId);
         res.send(deletedUser.firstName + " is deleted.");
     } 
-    catch{
-        res.status(400).send("Something went wrong !");
+    catch(err){
+        res.status(400).send("Something went wrong !"+err);
     }
 });
 
 // update user API
-app.patch("/user", async (req,res)=>{
+app.patch("/user/:userId", async (req,res)=>{
     try{
-        const userId = req.body.userId;
+        const userId = req.params?.userId;
         const data = req.body;
-        const updatedUser = await userModel.findByIdAndUpdate(userId,data);
+        const ALLOWED_UPDATES = ["gender","skills","about","password","age","photoURL","firstName","lastName"];
+        let updatingSkills = false;
+        const isUpadateAllowed = Objects.keys(data).every((k)=>{
+            ALLOWED_UPDATES.includes(k);
+            if(k==="skills"){
+                updatingSkills=true;
+            }
+        })
+        if(!isUpadateAllowed){
+            res.status(400).send("Updation is not allowed.");
+        }
+        if(updatingSkills && req.body.skills.length > 15){
+            res.status(400).send("Skills cannot be more than 15");
+        }
+        const updatedUser = await userModel.findByIdAndUpdate(userId,data,{
+            runValidators:true,
+        });
         res.send(updatedUser.firstName + " is updated.");
     } 
-    catch{
-        res.status(400).send("Something went wrong !");
+    catch(err){
+        res.status(400).send("Something went wrong !"+err);
     }
 });
 
