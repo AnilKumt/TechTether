@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
         type: String,
         minlength:3,
         maxlength:50,
-        require:true
+        required:true
     },
     lastName:{
         type: String,
@@ -28,7 +28,7 @@ const userSchema = mongoose.Schema({
     },
     emailId:{
         type: String,
-        require:true,
+        required:true,
         unique:true,
         trim:true,
         validate(value){
@@ -47,7 +47,7 @@ const userSchema = mongoose.Schema({
     },
     password:{
         type: String,
-        require:true,
+        required:true,
         validate(value){
             if(!validator.isStrongPassword(value)){
                 throw new Error("Please Enter a Strong Password");
@@ -59,7 +59,7 @@ const userSchema = mongoose.Schema({
         default:"This the deafault about me."
     },
     skills:{
-        type: {String}
+        type: [String]
     },
 },
 {

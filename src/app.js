@@ -2,7 +2,8 @@ const express = require("express");
 const {connectDB} = require("./config/database.js");
 const {adminAuth,userAuth} = require("./middlewares/auth.js");
 const {userModel} = require("./models/user.js");
-const validateSignUPData = require("./utils/validation.js");
+const {validateSignUPData} = require("./utils/validation.js");
+const bcrypt = require("bcrypt");
 const app = express();
 // connecting to DB and then making server listen at port number 3000
 connectDB()
@@ -24,14 +25,14 @@ app.post("/signup",async (req,res)=>{
     try{
         // validating data given by user
         validateSignUPData(req);
-        const {firstName,lastName,emailId,password} = req;
+        const {photoURL,firstName,lastName,emailId,password,gender,age,skills,about} = req.body;
 
         //Password encrpting
-        const passwordHash = bcrypt.hash(password,10);
+        const passwordHash = await bcrypt.hash(password,10);
 
         // storing user in DB
         const newUser = new userModel({
-            firstName,lastName,emailId,password:passwordHash
+            photoURL,firstName,lastName,emailId,password:passwordHash,gender,age,skills,about
         });
         await newUser.save();
         res.send("Congratulations!.You have signed Up !");
