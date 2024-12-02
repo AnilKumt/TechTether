@@ -4,6 +4,7 @@ const {adminAuth,userAuth} = require("./middlewares/auth.js");
 const {userModel} = require("./models/user.js");
 const {validateSignUpData,validatelogInData} = require("./utils/validation.js");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
 const app = express();
 // connecting to DB and then making server listen at port number 3000
 connectDB()
@@ -19,6 +20,7 @@ connectDB()
 
 // middleware to convert JSON data into javascript object.
 app.use(express.json());
+app.use(cookieParser());
 
 // Signup API
 app.post("/signup",async (req,res)=>{
@@ -50,15 +52,21 @@ app.post("/login",async (req,res)=>{
         validatelogInData(req);
         const {emailId,password} = req.body;
 
-        const user = await userModel.find({emailId:emailId}); // Find returns array so,either use findOne or find , then take it's 0th index.
+        const user = await userModel.findOne({emailId:emailId}); // Find returns array so,either use findOne or find , then take it's 0th index.
         if(user.length==0){
             throw new Error("Invalid Credentials.");
         }
 
-        const isPasswordCorrect = await bcrypt.compare(password,user[0].password);// since user is a array of object
+        const isPasswordCorrect = await bcrypt.compare(password,user.password);
         if(!isPasswordCorrect){
             throw new Error("Invalid Credentials.");
         }
+
+        const token = user.getJWT();
+        console.log(token);
+        res.cookie("token",token,{
+            expires:new Date(Date.now() + 8*3600000),
+        });
         res.send("Logged in successfully !");
     }
     catch(err){
@@ -84,7 +92,7 @@ app.get("/users", async (req,res)=>{
 });
 
 // delete user API
-app.delete("/user", async (req,res)=>{
+app.delete("/user", userAuth,async (req,res)=>{
     try{
         const userId = req.body.userId;
         const deletedUser = await userModel.findByIdAndDelete(userId);
@@ -96,23 +104,27 @@ app.delete("/user", async (req,res)=>{
 });
 
 // update user API
-app.patch("/user/:userId", async (req,res)=>{
+app.patch("/user", userAuth,async (req,res)=>{
     try{
-        const userId = req.params?.userId;
+        //const userId = req.params?.userId; *If /user/:userId is used
+        const userId = req.body.userId;
         const data = req.body;
-        const ALLOWED_UPDATES = ["gender","skills","about","password","age","photoURL","firstName","lastName"];
+        const ALLOWED_UPDATES = ["userId","gender","skills","about","password","age","photoURL","firstName","lastName"];
         let updatingSkills = false;
-        const isUpadateAllowed = Objects.keys(data).every((k)=>{
-            ALLOWED_UPDATES.includes(k);
-            if(k==="skills"){
-                updatingSkills=true;
+        const isUpadateAllowed = Object.keys(data).every((k)=>{
+            if (!ALLOWED_UPDATES.includes(k)) {
+                return false; // If any key is not allowed, return false
             }
+            if (k === "skills") {
+                updatingSkills = true;
+            }
+            return true; // Otherwise, allow the key
         })
         if(!isUpadateAllowed){
-            res.status(400).send("Updation is not allowed.");
+            return res.status(400).send("Updation is not allowed.");
         }
         if(updatingSkills && req.body.skills.length > 15){
-            res.status(400).send("Skills cannot be more than 15");
+            return res.status(400).send("Skills cannot be more than 15");
         }
         const updatedUser = await userModel.findByIdAndUpdate(userId,data,{
             runValidators:true,
@@ -120,7 +132,7 @@ app.patch("/user/:userId", async (req,res)=>{
         res.send(updatedUser.firstName + " is updated.");
     } 
     catch(err){
-        res.status(400).send("Something went wrong !"+err);
+        res.status(400).send("Something went wrong ! "+err);
     }
 });
 
@@ -133,6 +145,9 @@ app.use("/admin",userAuth,(req,res)=>{
 });
 
 app.use("/user/:userId",(req,res)=>{
-    console.log(req.query);
+    console.log(req.query); 
+    /*
+    to get userId we use  "const userId = req.params?.userId; "
+    */
     res.send("WORKING.........");
 });

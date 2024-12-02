@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
 const userSchema = mongoose.Schema({
     PhotoURL:{
         type: String,
@@ -66,6 +67,14 @@ const userSchema = mongoose.Schema({
     timestamps:true,
 });
 
+userSchema.methods.getJWT = function() {
+    const SECRET_KEY = "techTether$1234";
+    const user = this;
+    const token = jwt.sign({_id:user._id},SECRET_KEY,{
+        expiresIn:"7d",
+    });
+    return token;
+}
 const userModel = mongoose.model("user" , userSchema);
 
 module.exports = {userModel};
