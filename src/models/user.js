@@ -61,6 +61,9 @@ const userSchema = mongoose.Schema({
     skills:{
         type: {String}
     },
+},
+{
+    timestamps:true,
 });
 
 const userModel = mongoose.model("user" , userSchema);
