@@ -2,7 +2,7 @@ const express = require("express");
 const {connectDB} = require("./config/database.js");
 const {adminAuth,userAuth} = require("./middlewares/auth.js");
 const {userModel} = require("./models/user.js");
-const {validateSignUPData} = require("./utils/validation.js");
+const {validateSignUpData,validatelogInData} = require("./utils/validation.js");
 const bcrypt = require("bcrypt");
 const app = express();
 // connecting to DB and then making server listen at port number 3000
@@ -24,7 +24,7 @@ app.use(express.json());
 app.post("/signup",async (req,res)=>{
     try{
         // validating data given by user
-        validateSignUPData(req);
+        validateSignUpData(req);
         const {photoURL,firstName,lastName,emailId,password,gender,age,skills,about} = req.body;
 
         //Password encrpting
@@ -39,6 +39,30 @@ app.post("/signup",async (req,res)=>{
     }
     catch(err){
         res.status(400).send("Sorry. Unable to signUp Now."+err);
+    }
+
+});
+
+// login API
+app.post("/login",async (req,res)=>{
+    try{
+        // validating data given by user
+        validatelogInData(req);
+        const {emailId,password} = req.body;
+
+        const user = await userModel.find({emailId:emailId}); // Find returns array so,either use findOne or find , then take it's 0th index.
+        if(user.length==0){
+            throw new Error("Invalid Credentials.");
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password,user[0].password);// since user is a array of object
+        if(!isPasswordCorrect){
+            throw new Error("Invalid Credentials.");
+        }
+        res.send("Logged in successfully !");
+    }
+    catch(err){
+        res.status(400).send(err.message);
     }
 
 });
