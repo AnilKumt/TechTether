@@ -26,7 +26,7 @@ const userRouter = require("./routes/userRouter.js");
 
 app.use("/",authRouter);
 app.use("/",profileRouter);
-//app.use("/",connectionsRouter);
+app.use("/",connectionsRouter);
 app.use("/",userRouter);
 
 
