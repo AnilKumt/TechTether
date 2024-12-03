@@ -12,8 +12,8 @@
 
 ## connection request Routers
 - POST /request/send/:status/:userId
- - |_ POST /request/send/interested/:userid
- - |_ POST /request/send/ignored/:userid
+    - POST /request/send/interested/:userid
+    - POST /request/send/ignored/:userid
 - POST /request/review/accepted/:requestid
 - POST /request/review/rejected/:rejectid
 
