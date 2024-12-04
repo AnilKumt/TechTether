@@ -56,4 +56,35 @@ connectionRequestRouter.post("/request/send/:status/:userId",userAuth,async (req
     }
 });
 
+connectionRequestRouter.post("/request/review/:status/:requestId",userAuth,async (req,res)=>{
+    try{
+        const loggedInUser = req.body.userId;
+        const requestId = req.params?.requestId;
+        const status = req.params?.status;
+
+        // validate stauus.
+        if(!["accepted","rejected"].includes(status)){
+            throw new Error("Status is invalid.");
+        }
+        // validate requestId with requestId and loggedInUser
+        const request = await connectionRequest.findOneAndUpdate( { 
+            _id: requestId,toUserId:loggedInUser } ,
+            { status :status},
+            {new:true}
+        );
+        if(!(request)){
+            throw new Error("User not Found");
+        }
+
+        res.json({
+            "message": "you have "+request.status+" the user with userId : "+request.toUserId,
+            request
+        })
+
+    }
+    catch(err){
+        res.status(400).send("ERROR : "+err.message);
+    }
+});
+
 module.exports = connectionRequestRouter;
