@@ -44,7 +44,7 @@ authRouter.post("/login",async (req,res)=>{
         }
 
         const token = user.getJWT();
-        console.log(token);
+        //console.log(token);
         res.cookie("token",token,{
             expires:new Date(Date.now() + 8*3600000),
         });

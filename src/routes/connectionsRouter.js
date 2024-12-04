@@ -77,7 +77,7 @@ connectionRequestRouter.post("/request/review/:status/:requestId",userAuth,async
         }
 
         res.json({
-            "message": "you have "+request.status+" the user with userId : "+request.toUserId,
+            "message": "you have "+request.status+" the user with userId : "+request.fromUserId,
             request
         })
 
