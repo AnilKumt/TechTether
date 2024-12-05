@@ -21,4 +21,4 @@
 ## user Router
 - GET /myConnections ✅
 - GET /requests/received ✅
-- GET /feed 
+- GET /user/feed ✅

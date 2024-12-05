@@ -58,18 +58,42 @@ userRouter.get("/user/request/received",userAuth,async(req,res)=>{
     }
 });
 // feed API
-userRouter.get("/users", async (req,res)=>{
+userRouter.get("/user/feed",userAuth, async (req,res)=>{
     try{
-        const users = await userModel.find({});
-        if(users.length==0){
-            res.status(404).send("No Recommendations are found");
+        // Feed should not get 
+        // 0.user himself.
+        // 1.his connections.
+        // 2.people whom he ignored or they ignored him.
+        // So, Eventually we donot want people who in DB with HIM (from or to)
+        const loggedInUser = req.body.userId;
+        const userConnections = await connectionRequest.find({
+            $or:[
+                {fromUserId:loggedInUser},
+                {toUserId:loggedInUser}
+            ]
+        });
+        const hideUsersFromFeed = new Set();
+        userConnections.forEach((connection)=>{
+            hideUsersFromFeed.add(connection.fromUserId);
+            hideUsersFromFeed.add(connection.toUserId);
+
+        });
+
+        const pageNumber = req.query?.page || 1;
+        const limitNumber = req.query?.limit || 10;
+        const skipNumber = (pageNumber-1)*limitNumber; 
+        const usersForFeed = await userModel.find(
+            {_id:{ $nin:Array.from(hideUsersFromFeed) }},
+            { emailId: 0, password: 0,createdAt:0,updatedAt:0 }   
+        ).skip(skipNumber).limit(limitNumber);
+
+        if(usersForFeed.length==0){
+            return res.status(400).send("You have no recommendation as of now!");
         }
-        else{
-            res.send(users);
-        }
+        res.send(usersForFeed);
     } 
     catch(err){
-        res.status(400).send("Something wenr wrong !"+err);
+        res.status(400).send("Something wenr wrong ! "+err.message);
     }
 });
 
